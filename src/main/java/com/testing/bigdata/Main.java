@@ -24,7 +24,8 @@ public class Main {
 //        learning(sc);
 //        pairRDD(sc);
 //        flatMaps(sc);
-        readFromAFile(sc);
+//        readFromAFile(sc);
+        readAndReturn(sc);
         sc.close();
 
     }
@@ -88,5 +89,20 @@ public class Main {
         initiatedRdd.flatMap(val -> Arrays.asList(val.split(" ")).iterator())
                 .collect()
                 .forEach(System.out::println);
+    }
+
+    private static void readAndReturn(JavaSparkContext sc){
+        JavaRDD<String> initiatedRdd = sc.textFile("src/main/resources/subtitles/input.txt");
+
+        initiatedRdd.flatMap(val -> Arrays.asList(val.replace(",", "")
+                        .replace(".", "").split(" ")).iterator())
+                .filter(val -> val.length() > 0)
+                .mapToPair(val -> new Tuple2<>(val, 1l))
+                .reduceByKey((val1, val2)-> val1+val2)
+                .mapToPair(val -> new Tuple2<>(val._2, val._1))
+                .sortByKey(false)
+                .take(10)
+                .forEach(System.out::println);
+
     }
 }
